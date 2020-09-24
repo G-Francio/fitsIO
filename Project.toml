@@ -1,0 +1,4 @@
+name = "fitsIO"
+uuid = "293f9c8f-600a-4c5b-b90c-832b6ace9d48"
+authors = ["G-Francio <francesco.guarneri.spam@gmail.com>"]
+version = "0.1.0"
