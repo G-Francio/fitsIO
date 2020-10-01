@@ -1,6 +1,6 @@
 module fitsIO
     using FITSIO, TextParse, AstroLib, DataFrames, Dates, WeakRefStrings, Printf
-    using ProgressMeter, PrettyTables, Dierckx, Gnuplot, QuadGK
+    using ProgressMeter, PrettyTables, Dierckx, Gnuplot, QuadGK, AstroRecipes
 
     import Base.write
 
@@ -691,4 +691,12 @@ module fitsIO
     end
 
     # ------------------------------ ** ------------------------------ #
-end
+
+    function login_qub()
+        cred_IO = open("/home/francio-pc/.exe/julia_modules/cred.auth", "r")
+        cred = read(credIO, String)
+        close(cred_IO)
+        user = cred[1]
+        pass = cred[2]
+        AstroRecipes.set_odbc_connection("Driver={MariaDB};SERVER=127.0.0.1", user=user, pass=pass)
+    end
