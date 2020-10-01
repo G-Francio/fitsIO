@@ -1,5 +1,5 @@
 module fitsIO
-    using FITSIO, TextParse, AstroLib, DataFrames, Dates, WeakRefStrings,
+    using FITSIO, TextParse, AstroLib, DataFrames, Dates, WeakRefStrings
     using PrettyTables, Dierckx, Gnuplot, QuadGK, AstroRecipes
 
     import Base.write
