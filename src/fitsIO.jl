@@ -5,11 +5,7 @@ module fitsIO
     import Base.write
 
     export adaptive_bin,
-        add_topcat_coord,
-        add_new_survey,
         create_dataframe,
-        complete_spec,
-        create_new_id,
         find_fits,
         get_current_date,
         get_hdu_col_names,
@@ -21,16 +17,10 @@ module fitsIO
         mag_lim,
         new_spectra_df!,
         prepare_stack,
-        read_dict_names,
-        read_keyword,
         rebin,
         remove_missing!,
         stack_spectra!,
         sub_in_df!,
-        survey_boolean,
-        update_dict,
-        update_observation,
-        update_small_survey,
         write
 
     """
@@ -108,15 +98,10 @@ module fitsIO
 
     Ritorna la data attuale come stringa.
     """
-    get_current_date() = date_to_string(now())
-
-    # ------------------------------ ** ------------------------------ #
-
-    # ------------------------------ ** ------------------------------ #
-    # Crea il dataframe, in base al tipo file in input. prepare_text sistema il testo
-    #  in modo che diventi intellegibile al pc
-
-    """
+    function get_current_date()
+        date_to_string(now())
+    end
+"""
         create_dataframe_internal(hdu::TableHDU, internal_id = "myid")
 
     Crea e ritorna un dataframe dato un `TableHDU` da un file Fits.
@@ -226,11 +211,6 @@ module fitsIO
     # ------------------------------ ** ------------------------------ #
 
 
-    # ------------------------------ ** ------------------------------ #
-
-
-    # ------------------------------ ** ------------------------------ #
-
     """
         create_dataframe(file_in::AbstractString, file_type::Char; hdu_number::Int = 2, separator::Char = '|', cchar::Char = '#', hexists::Bool = true, file_out::AbstractString = "temp", dict = nothing)
 
@@ -283,575 +263,6 @@ module fitsIO
     # ------------------------------ ** ------------------------------ #
 
     """
-        read_keyword(file_in::AbstractString)
-
-    Legge da file la lista di keyword da selezionare.
-    """
-    function read_keyword(file_in::AbstractString)
-        #TODO: aggiungi sistema per prendere in blocco tutte le colonne
-        return_list = []
-        for line in eachline(file_in)
-            push!(return_list, line)
-        end
-        return return_list
-    end
-
-    # ------------------------------ ** ------------------------------ #
-
-
-    # ------------------------------ ** ------------------------------ #
-    """
-        update_observation(df_all::DataFrame, df_new::DataFrame, internal_id = :myid)
-
-    Aggiorna il database delle osservazioni con i nuovi dati. La logica che seguo è:
-    - controlla se ci sono flag in `:comp`. In quel caso aggiungi semplicemente la riga, lo
-    spettro è un duplicato/qualcosa.
-    - se non ci sono flag, controlla che l'id non sia un duplicato. Se lo fosse, flagga con
-    u e scrive su un file di log.
-    """
-    # TODO: Cerca un modo di catalgare e distinguere n/g/d in modo automatico.
-
-    function update_observation(df_all::DataFrame, df_new::DataFrame, internal_id = "myid")
-        # Rimuovo la colonna myid perchè tanto non mi serve
-        col_names_all, col_names_new = names(df_all), names(df_new)
-
-        if internal_id in col_names_all
-            select!(df_all, Not(internal_id))
-        end
-        if internal_id in col_names_new
-            select!(df_new, Not(internal_id))
-        end
-        return_df_all = deepcopy(df_all)
-
-        known_id = Set(df_all[:, :id])
-
-        date = get_current_date()
-        open("duplicates-$date.log", "a") do f
-            for row_new in eachrow(df_new)
-                if row_new[:comp] != " "
-                    push_in_df!(return_df_all, row_new, row_new[:comp])
-                else
-                    if row_new[:id] in known_id
-                        push_in_df!(return_df_all, row_new, "u")
-                        write(f, String(row_new[:id]))
-                    else
-                        push_in_df!(return_df_all, row_new, " ")
-                    end
-                end
-            end
-        end
-        return return_df_all
-    end
-
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
-        push_in_df!(df, row, comp)
-
-    Funzione di supporto a `update_observation` per non riscrivere il push 10 volte.
-    """
-    function push_in_df!(df, row_new, comp)
-        push!(df, [
-        row_new[:id],
-        row_new[:jid],
-        comp,
-        row_new[:RAd],
-        row_new[:DECd],
-        row_new[:RAs],
-        row_new[:DECs],
-        row_new[:z_spec],
-        row_new[:qflag],
-        row_new[:DateObs],
-        row_new[:DateObsMJD],
-        row_new[:otype],
-        row_new[:Instrument]])
-    end
-
-    # ------------------------------ ** ------------------------------ #
-
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
-        image_to_table(fits_in::AbstractString)
-
-    Converte da un fits image ad un fits table, con tutti i cristi. Vuole in input il nome
-    del file da convertire, e il percorso al dizonario che contiene la lista di nomi già
-    usati, per poter rinominare gli spettri ed evitare duplicati.
-    TODO: aggiungere la gestione dei file fire e dupont.
-    """
-    function image_to_table(fits_in::AbstractString)#; fire = false, dupont = false)
-        fin = FITS(fits_in)
-        df = DataFrame(myid = Int64[], wave = Float64[], flux = Float32[],
-                        err = Float32[], wpix = Float64[])
-
-        # if fire
-        #     w_list = read(f[6], "WAVE")
-        #     f_list = read(f[6], "FLUX")
-        #     for (i, (w, f)) in enumerate(zip(w_list, f_list))
-        #         if i == 1
-        #             pix_size = w[i + 1] - w[i]
-        #         elseif i == maximum(w)
-        #             pix_size = w[i] - w[i - 1]
-        #         else
-        #             pix_size = ((w[i + 1] - w[i]) + (w[i] - w[i - 1]))/2
-        #         end
-        #         push!(df, [i, w, f, NaN, pix_size])
-        #     end
-        #     return df
-        # end
-
-        header = read_header(fin[1]) # Assumo che ci sia solo un hdu
-        max_pix = size(fin[1])[1]
-        data = read(fin[1])
-
-        ref_pixel = header["CRPIX1"]
-        min_wave = header["CRVAL1"] - (ref_pixel - 1) * header["CDELT1"]
-
-        for i in 1:max_pix
-            w = min_wave + i*header["CDELT1"]
-            f = data[i]
-            push!(df, [i, w, f, NaN, header["CDELT1"]])
-            # Assumo che tutti gli errori siano a NaN, tanto scommetto lo saranno sempre.
-        end
-
-        #= regex = Regex("[\\d\\+\\-\\.]+")
-        (RAd, DECd) = (header["RA"], header["DEC"])
-        coord_sexadec = adstring(RAd, DECd, precision = 1)
-        new_name = "J"
-        for m in eachmatch(regex, coord_sexadec)
-            new_name *= m.match
-        end =#
-        close(fin)
-
-        return df
-    end
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
-        new_spectra_df!(df::DataFrame, header_values::Array, Jid, myid, comp = nothing)
-
-    Aggiorna un dataframe vuoto con le informazioni da tutti gli spettri che gli dai in
-    pasto. `df` è il dataframe che viene modificato aggiungendo informazioni.
-    Viene aggiunta la colonna di `:myid` (che viene passato durante il loop esterno), per
-    riuscire a sistemare i join. `header_values` contiene i valori associati ad ogni card
-    che ti serve. `Jid` è il nuovo id, `comp` è la flag di duplicati e simili, può essere
-    passata come no. Se non è passata mi limito a segnarla come ` `.
-    Non mi preoccupo dei duplicati per ora, questa funzione crea solo il dataframe completo
-    con i nuovi dati che poi viene aggiunto al principale: all'aggiunta mi preoccupo dei
-    doppi.
-    """
-    function new_spectra_df!(df::DataFrame, header_values::Array, Jid, myid, comp = nothing)
-
-        handle_missing_str(input::AbstractString) = input
-        handle_missing_str(input::Missing) = "unknown"
-        handle_missing_num(input::Number) = input
-        handle_missing_num(input::Missing) = NaN
-
-        if isnan(header_values[1])
-            (RAs, DECs) = (missing, missing)
-        else
-            # coord_string = adstring(header_values[1], header_values[2], precision = 1)
-            coord_string = adstring_temp(header_values[1], header_values[2])
-            (RAs, DECs) = replace.(strip.(split(coord_string, "  ")), (' ' => ':'))
-        end
-
-        if !isnothing(comp)
-            push!(df, [myid,
-                       Jid,
-                       replace(comp, "." => " "),
-                       header_values[1],
-                       header_values[2],
-                       handle_missing_str(RAs),
-                       handle_missing_str(DECs),
-                       #split(date_to_string(daycnv(header_values[4])), 'T')[1],
-                       handle_missing_str(header_values[3]),
-                       handle_missing_num(header_values[4]),
-                       handle_missing_str(header_values[5])])
-        else
-            push!(df, [myid,
-                       Jid,
-                       " ",
-                       header_values[1],
-                       header_values[2],
-                       handle_missing_str(RAs),
-                       handle_missing_str(DECs),
-                       # split(date_to_string(daycnv(header_values[5])), 'T')[1],
-                       handle_missing_str(header_values[3]),
-                       handle_missing_num(header_values[4]),
-                       handle_missing_str(header_values[5])])
-        end
-    end
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
-        get_header_values(fits_in::AbstractString, header_keys::Array, hdu::Int = 1)
-
-    Legge i valori delle chiavi dell'header date delle chiavi di riferimento. Non posso
-    farla generale perchè la gente non si mette d'accordo sulle flag.
-    """
-    function get_header_values(fits_in::AbstractString, header_keys::Array, hdu::Int = 1)
-        date_format = DateFormat("Y-m-dTH:M:S")
-        header_values = []
-        f = FITS(fits_in)
-        header = read_header(f[hdu]) # assumo di avere sempre un solo hdu.
-        new_ins = try
-            header["TELESCOP"]*" / "*header["INSTRUME"]
-        catch error
-            if isa(error, KeyError)
-                return [NaN, NaN, missing, missing, missing]
-            end
-        end
-
-        # Siccome non si mettono d'accordo tocca sistemare a mano
-        if (new_ins == "Baade_Mag_1 / IMACS Short-Camera" || new_ins == "Clay_Ma / LDSS3-"
-            || new_ins == "Clay_Mag_2 / LDSS3-C" || new_ins == "duPont / WFCCD/WF4K-1")
-            header_keys = ["RA-D", "DEC-D", "UT-DATE", "UT-TIME"]
-        elseif new_ins == "Baade / FIRE"
-            header_keys = ["RA", "DEC", "ACQTIME1", "ACQTIME"]
-        else new_ins == "ESO-NTT / EFOSC"
-            header_keys = ["RA", "DEC", "DATE-OBS", "MJD-OBS"]
-        end
-
-
-        for key in header_keys
-            if haskey(header, key)
-                push!(header_values, header[key])
-            else
-                # se non ho una key mi limito a dirgli che è un missing. Testa per vedere
-                # come evolve la situazione con i resto del programma.
-                push!(header_values, missing)
-            end
-        end
-        close(f)
-
-        if ((new_ins == "Baade_Mag_1 / IMACS Short-Camera" || new_ins == "Clay_Ma / LDSS3-"
-            || new_ins == "Clay_Mag_2 / LDSS3-C" || new_ins == "duPont / WFCCD/WF4K-1")
-            && !ismissing(header_values[4]))
-            time_string = header_values[3]*'T'*header_values[4]
-            header_values[4] = juldate(DateTime(time_string, date_format)) - 0.5
-        elseif new_ins == "Baade / FIRE" && !ismissing(header_values[4])
-            header_values[3] = split(header_values[3], '-')[1]
-            header_values[4] -= 2400000.5
-        end
-
-        push!(header_values, new_ins)
-        return header_values
-    end
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
-        read_dict_name(path::AbstractString)
-
-    Si occupa di leggere il dizionario su cui salvo i nomi e il numero di occerrenze per
-    nome. Il file è chiamato `dict_names.dict`.
-    All'interno di quel file le voci sono sempre scritte come `nome_fits` => `#occorrenze`.
-    """
-    function read_dict_names(path::AbstractString = "/home/francesco/tesi/JuliaScript/")
-        return_dict = Dict()
-        # Nel caso il file non esista lo crea al volo vuoto
-        f = try
-            open(rstrip(path, '/')*'/'*"dict_names.dict")
-        catch error
-            if isa(error, SystemError)
-                run(`touch /home/francesco/tesi/JuliaScript/dict_names.dict`)
-                open(rstrip(path, '/')*'/'*"dict_names.dict")
-            end
-        end
-
-        for line in eachline(f)
-            splitted_line = split(line, " => ")
-            return_dict[splitted_line[1]] = parse(Int64, splitted_line[2])
-        end
-        close(f)
-        return return_dict
-    end
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
-        create_new_id(RAd::Number, DECd::Number, dict::Dict, comp::AbstractString = ".")
-
-    Crea il nuovo id utilizzando le coordinate, legge e aggiorna il dizionario degli id in
-    modo da evitare le ripetizioni.
-    """
-    function create_new_id(RAd::Number, DECd::Number, dict::Dict, comp::AbstractString = ".")
-        regex = Regex("[\\d\\+\\-\\.]+")
-        new_name = "J"
-
-        if (isnan(RAd))
-            return " "
-        end
-
-        # coord_sexadec = adstring(RAd, DECd, precision = 1)
-        coord_sexadec = adstring_temp(RAd, DECd)
-        for m in eachmatch(regex, coord_sexadec)
-            new_name *= m.match
-        end
-
-        return_name = ""
-
-        if comp == "."
-            return_name = new_name
-            dict[new_name] = get(dict, new_name, 0)
-        else
-            dict[new_name] = get(dict, new_name, 0) + 1
-            return_name = new_name*Char(96 + dict[new_name])
-        end
-
-        return return_name
-    end
-
-    function create_new_id(RAd::Missing, DECd::Missing, dict::Dict)
-        return "unknown"
-    end
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
-        update_dict(dict::Dict, file_in::AbstractString = "/home/francesco/tesi/JuliaScript/dict_names.dict")
-
-    Aggiorna il dizionario scritto su file una volta che tutti i file sono stati processati.
-    Il nome per default è dict_names.dict in `~/tesi/JuliaScript/`
-    """
-    function update_dict(dict::Dict, file_name::AbstractString = "/home/francesco/tesi/JuliaScript/dict_names.dict")
-        f = open(file_name, "w")
-        for key in keys(dict)
-            write(f, key*" => "*string(dict[key])*'\n')
-        end
-        close(f)
-    end
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
-        complete_spec(df::DataFrame, file_name::AbstractString)
-
-    Determina la pixel size un po' a spanne basandosi sulla Dlambda indicata nel file fits.
-    Produce un nuovo file fits che contiene anche le colonne di errore e wpix.
-    Assumo sempre che il file in ingresso non contenga colonne di errore o simili.
-    """
-    function complete_spec(df::DataFrame, file_name::AbstractString)
-        # File_name è il nome dello spettro su cui stai lavorando, serve solo per il log.
-        # Qui è un po' nebuloso: non sapendo come si chiama la colonna di errori (sempre
-        #  che prima o poi ci sia una colonna di errori) assumo che:
-        #  - se ci sono 5 colonne, ho sia errore che wpix, comunque essi siano.
-        #  - se ci sono 4 colonne, caccio un warning col nome del file sfigato.
-        # TODO: controlla che nessuno dei file abbia un hdu extra che contiene le informazioni
-        #  sull'errore e sulla wpix.
-        # TODO: cerca un modo intelligente di gestire la possibilità che il file fits abbia già
-        #  errore e wpix, o entrambi.
-
-        col_names = names(df)
-        date = get_current_date()
-
-        if length(col_names) == 5
-            return df
-        elseif length(col_names) == 4
-            open("4cols-$date.log", "a") do f
-                write(f, file_name)
-            end
-            error("This fits has 3 cols, check manually: $file_name")
-        end
-
-        pix = DataFrame(tmp = Int64[], err = Float32[], wpix = Float64[])
-        rename!(pix, Dict(:tmp => col_names[1]))
-
-        for id in df[!, col_names[1]]
-            if id == 1
-                pix_size = df.:wave[id + 1] - df.:wave[id]
-            elseif id == maximum(df[!, col_names[1]])
-                pix_size = df.:wave[id] - df.:wave[id - 1]
-            else
-                pix_size = ((df.:wave[id + 1] - df.:wave[id]) + (df.:wave[id] - df.:wave[id - 1]))/2
-            end
-            # Il NaN rappresenta l'errore.
-            push!(pix, (id, NaN, pix_size))
-        end
-        return join(df, pix, on = col_names[1])
-    end
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
-        add_topcat_coord(text_file::String, fits_file::String)
-
-    Dato un file riassuntivo e un fits con le coordiante di Skymapper crea un dataframe di
-    base che deve poi essere messo in coda ad Observations.
-    """
-    function add_topcat_coord(text_file::String, fits_file::String)
-        function parseAGN(s)
-            if s == "AGN"
-                return "QSO"
-            else
-                return s
-            end
-        end
-
-        d = Dict(:object_id => :id, :raj2000 => :RAd, :dej2000 => :DECd)
-        tdf = create_dataframe(text_file, 't', dict = Dict(:otype => parseAGN))
-        fdf = create_dataframe(fits_file, 'f')
-        rename!(fdf, d)
-
-        if length(Set(fdf[:, :id])) != length(Set(fdf[:, :id]))
-            error("Oggetti doppi, controlla a mano prima di proseguire.")
-        end
-
-        # select!(tdf, Not(:myid))
-        select!(fdf, Not(:myid))
-
-        ndf = join(tdf, fdf, on = :id)
-        # rdf = deepcopy(ndf) # necessario per evitare di perdermi :myid nell'oggetto che
-                            #  ritorno.
-        #write_fits(ndf, "/tmp/info.fits")
-        return ndf
-    end
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
-        update_small_survey(args...)
-
-    Passando chiamandola in `@trasform(df, col_name = update_small_survey.(first_col, second_col))`
-    aggiorna known con i cataloghi più scarsi di quasar. La corrispondenza catalogo numero
-    è nell'header del fits.
-    """
-    function update_small_survey(args...)
-        miss(n::Missing) = ""
-        function miss(n::Number)
-            return string(n)
-        end
-
-        list = []
-        for (i, arg) in enumerate(args)
-            if !ismissing(arg)
-                push!(list, arg)
-            end
-        end
-
-        return_string = ""
-        if length(list) == 0
-            return " "
-        end
-
-        for (num, i) in enumerate(list)
-            if num < length(list)
-                return_string *= miss(i)*", "
-            else
-                return_string *= miss(i)
-            end
-        end
-
-        return return_string
-    end
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
-    add_new_survey(known::DataFrame, new_::DataFrame)
-
-    Aggiunge osservazioni nuove e aggiorna eventuali osservazioni presenti. `known`
-    è il dataframe con i nuovi dati, `known_df` è il dataframe con l'elenco completo,
-    `missing_names` è il set di survey già presenti in known_df, `survey_name` è il nome
-    della nuova survey. `quality_flag` non dovrebbe mai cambiare, ma nel caso una survey
-    abbia la colonna qualità con il titolo diverso si può rinominare al volo.
-    """
-    function add_new_survey(known::DataFrame, new_::DataFrame; quality_flag = nothing)
-        # Ritorna l'argomento per il fill
-        function fill_with(x, t::Type)
-            if isa(x, Real)
-                return convert(t, 0)
-            elseif isa(x, String)
-                return " "
-            end
-        end
-
-        # Assegno dei simboli che devono essere fissi. new DEVE avere queste colonne
-        fixed_names = [:RAd, :DECd, :RAs, :DECs, :z]
-        if length(intersect(Symbol.(names(new_)), fixed_names)) < length(fixed_names)
-            println("Missing mandatory columns")
-            return nothing
-        end
-        
-        # Non voglio modificare i dataframe in ingresso
-        new = deepcopy(new_)
-        new_known = deepcopy(known)
-
-        # Controllo che la colonna di qualità sia a posto
-        check_quality_flag!(new, quality_flag)
-
-        # Non voglio la colonna :myid
-        if "myid" in names(new_known)
-            select!(new_known, Not(:myid))
-        end
-
-        if "myid" in names(new)
-            select!(new, Not(:myid))
-        end
-
-        # Trovo le keyword in comune nei due dataframe
-        known_names = Symbol.(names(known))
-        new_names = Symbol.(names(new))
-        common_names = intersect(known_names, new_names)
-        
-        # Creo il dataframe di oggetti non noti
-        not_known = similar(new, 0)
-
-        for row in eachrow(new)
-            qso_coord = (row[:RAd], row[:DECd])
-            is_known_ = is_known(qso_coord, known)
-
-            if is_known_[1]
-                # Ciclo su tutti i nuovi nomi colonna
-                for name in new_names
-                    # Controllo che se il nome colonna sia già in known
-                    if name in common_names
-                        new_known[is_known_[2], name] = row[name]
-                    else
-                    # Se la colonna non esiste, creo una nuova colonna fatta tutta
-                    # di zeri, la incolla in coda al dataframe, la rinomina 
-                    # aggiunge il nuovo elemento alla posizione corretta
-                        new_col = fill(fill_with(row[name], eltype(row[name])), length(new_known[!, 1]))
-                        new_known = hcat(new_known, new_col)
-                        rename!(new_known, :x1 => name)
-                        push!(common_names, name)
-                        new_known[is_known_[2], name] = row[name]
-                    end
-                end
-            else
-                push!(not_known, row)
-            end
-        end
-
-        # Trova le colonne che mancano ai due dataframe in modo da completarli
-        new_known_names = Symbol.(names(new_known))
-        not_known_names = Symbol.(names(not_known))
-        cols_not_in_not_known = setdiff(new_known_names, not_known_names)
-        cols_not_in_new_known = setdiff(not_known_names, new_known_names)
-        for col in cols_not_in_not_known
-            new_col = fill(fill_with(new_known[!, col][1], eltype(new_known[!, col])), length(not_known[!, 1]))
-            not_known = hcat(not_known, new_col)
-            rename!(not_known, :x1 => col)
-        end
-        
-        for col in cols_not_in_new_known
-            new_col = fill(fill_with(not_known[!, col][1], eltype(not_known[!, col])), length(new_known[!, 1]))
-            new_known = hcat(new_known, new_col)
-            rename!(new_known, :x1 => col)
-        end
-
-        return vcat(new_known, not_known)
-    end
-
-    # ------------------------------ ** ------------------------------ #
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
         is_close(coord_one::Tuple, coord_two::Tuple, max_distance::Int64 = 1)
 
     Determina se due sorgenti sono vicine tra loro. Se lo sono ritorna `true`, altrimenti
@@ -882,33 +293,6 @@ module fitsIO
         end
         return (false, 0)
     end
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
-        check_quality_flag!(new_survey, quality_flag)
-
-    Funzione di supporto a `add_new_survey`, si limita a controllare che la colonna sulla
-    qualità dello spettro sia con il nome corretto e presente.
-    """
-    function check_quality_flag!(new_survey, quality_flag)
-        # Nel caso io abbia la colonna quality flag già a posto
-        "qflag" in names(new_survey) ? quality_flag = :qflag : quality_flag
-
-        # Nel caso la colonna per la flag quality abbia un nome diverso da :qflag lo
-        # rinomino.
-        if !isnothing(quality_flag) && quality_flag != :qflag
-            rename!(new_survey, (quality_flag => :qflag))
-        end
-
-        # Nel caso io non abbia proprio la quality flag, la aggiungo come "C"
-        if isnothing(quality_flag)
-            quality_list = fill("C", length(new_survey.:RAd))
-            insertcols!(new_survey, length(names(new_survey)) + 1, qflag = quality_list)
-        end
-    end
-
-    # ------------------------------ ** ------------------------------ #
 
     # ------------------------------ ** ------------------------------ #
 
@@ -976,8 +360,6 @@ module fitsIO
 
     # ------------------------------ ** ------------------------------ #
 
-    # ------------------------------ ** ------------------------------ #
-
     """
         shift_normalize_spectra(spec::DataFrame, z::Union{Float64, Int64};
              normalize_at::Union{Float64, Int64} = 1450)
@@ -1003,8 +385,6 @@ module fitsIO
 
         return spec
     end
-
-    # ------------------------------ ** ------------------------------ #
 
     # ------------------------------ ** ------------------------------ #
 
@@ -1117,34 +497,6 @@ module fitsIO
     # ------------------------------ ** ------------------------------ #
 
     """
-        survey_boolean(df::DataFrame)
-
-    Crea una colonna di tipo booleano per ogni survey, in modo che sia
-    possibile scegliere se è presente in quella survey o meno.
-    """
-    function survey_boolean(df_::DataFrame)
-        t(n) = n == 0 ? false : true
-        df = copy(df_)
-
-        for name in names(df)
-            if name[end] == '_'
-                new_col = Array{Bool, 1}(t.(df[!, name]))
-                df = hcat(df, new_col)
-                rename!(df, :x1 => strip(name, '_'))
-            end
-        end
-
-        mandadory_keys = [:RAd, :DECd, :RAs, :DECs, :z, :qflag, :r_psf, :i_psf, :z_psf]
-        all_keys = Symbol.(names(df))
-
-        sorted_keys = sort!(setdiff(all_keys, mandadory_keys))
-
-        select!(df, push!([:RAd, :DECd, :RAs, :DECs, :z, :r_psf, :i_psf, :z_psf], sorted_keys...))
-    end
-
-    # ------------------------------ ** ------------------------------ #
-
-        """
         sub_in_df(df::DataFrame, f, list)
 
     Data una lista con tanti elementi quanti le colonne, sostituiee per
@@ -1339,6 +691,4 @@ module fitsIO
     end
 
     # ------------------------------ ** ------------------------------ #
-
-    
 end
