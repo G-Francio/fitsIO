@@ -695,7 +695,7 @@ module fitsIO
 
     function login_qub()
         credIO = open("/home/francio-pc/.exe/julia_modules/cred.auth", "r")
-        cred = read(credIO, String)
+        cred = split(read(credIO, String), ":")
         close(credIO)
         user = cred[1]
         pass = cred[2]
