@@ -699,7 +699,7 @@ module fitsIO
         close(credIO)
         user = cred[1]
         pass = cred[2]
-        return (user, pass)
+        AstroRecipes.set_odbc_connection("Driver={MariaDB};SERVER=127.0.0.1", user = user, pass = pass)
     end
 
     # ------------------------------ ** ------------------------------ #
