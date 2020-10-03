@@ -697,8 +697,8 @@ module fitsIO
         credIO = open("/home/francio-pc/.exe/julia_modules/cred.auth", "r")
         cred = split(read(credIO, String), ":")
         close(credIO)
-        user = cred[1]
-        pass = cred[2]
+        user = string(cred[1])
+        pass = string(cred[2])
         AstroRecipes.set_db_connection("127.0.0.1", user = user, passwd = pass)
     end
 
