@@ -698,8 +698,7 @@ module fitsIO
         cred = split(read(credIO, String), ":")
         close(credIO)
         user = cred[1]
-        pass = cred[2]
-        AstroRecipes.set_db_connection(user = user, pass = pass)
+        AstroRecipes.set_db_connection("127.0.0.1", user = user)
     end
 
     # ------------------------------ ** ------------------------------ #
