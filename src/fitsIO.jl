@@ -229,15 +229,12 @@ module fitsIO
         separator::Char = '|', cchar::Char = '#', hexists::Bool = true,
         file_out::AbstractString = "temp", dict = nothing)
         # separator::Char = '│' <- Se servisse l'altro carattere
-        prinln("a")
         if file_type == 't'
-            println("a")
             prepare_text(file_in, separator, file_out, cchar)
             new_frame = create_dataframe_internal(file_out, cchar = cchar, hexists = hexists, dict = dict)
             run(`rm -f temp`)
             return new_frame
         elseif file_type == 'f'
-            println(typeof(f[hdu_number]))
             f = FITS(file_in)
             return_ = create_dataframe_internal(f[hdu_number])
             close(f)
