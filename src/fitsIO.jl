@@ -2,9 +2,11 @@ module fitsIO
     using FITSIO, TextParse, AstroLib, DataFrames, Dates, WeakRefStrings
     using PrettyTables, Dierckx, Gnuplot, QuadGK, AstroRecipes
 
-    import Base.write
+    import Base.write, Base.isnan
 
     export adaptive_bin,
+        change_missing!,
+        conversion_dict,
         create_dataframe,
         find_fits,
         get_current_date,
@@ -14,6 +16,7 @@ module fitsIO
         get_key_values,
         image_to_table,
         is_known,
+        isnan,
         login_qub,
         mag_lim,
         new_spectra_df!,
@@ -42,35 +45,35 @@ module fitsIO
     end
 
     """
-        get_hdu_keys(hdu::TableHDU)
+        get_hdu_keys(hdu::Union{TableHDU, ASCIITableHDU})
 
     Ritorna tutte le chiavi per l'HDU.
     """
-    function get_hdu_keys(hdu::TableHDU)
+    function get_hdu_keys(hdu::Union{TableHDU, ASCIITableHDU})
         return keys(read_header(hdu))
     end
 
     # ------------------------------ ** ------------------------------ #
 
     """
-        get_key_values(hdu::TableHDU, keys::Tuple)
+        get_key_values(hdu::Union{TableHDU, ASCIITableHDU}, keys::Tuple)
 
     Ritorna una coppia di (value[key], comment[value]) per ogni key.
     Se serve una sola chiave, passa (key, ) invece che (key) per evitare casotto. Usa più
     che puoi le keywords invece degli indici che son difficili da maneggiare.
     """
-    function get_key_values(hdu::TableHDU, keys::Tuple)
+    function get_key_values(hdu::Union{TableHDU, ASCIITableHDU}, keys::Tuple)
         return [read_key(hdu, key) for key in keys]
     end
 
     # ------------------------------ ** ------------------------------ #
 
     """
-        get_hdu_col_names(hdu::TableHDU)
+        get_hdu_col_names(hdu::Union{TableHDU, ASCIITableHDU})
 
     Ritorna i nomi delle colonne del'hdu.
     """
-    function get_hdu_col_names(hdu::TableHDU)
+    function get_hdu_col_names(hdu::Union{TableHDU, ASCIITableHDU})
         return FITSIO.colnames(hdu)
     end
 
@@ -102,12 +105,14 @@ module fitsIO
     function get_current_date()
         date_to_string(now())
     end
-"""
-        create_dataframe_internal(hdu::TableHDU, internal_id = "myid")
+
+
+    """
+        create_dataframe_internal(hdu::Union{TableHDU, ASCIITableHDU}, internal_id = "myid")
 
     Crea e ritorna un dataframe dato un `TableHDU` da un file Fits.
     """
-    function create_dataframe_internal(hdu::TableHDU, internal_id = "myid")
+    function create_dataframe_internal(hdu::Union{TableHDU, ASCIITableHDU}, internal_id = "myid")
         col_data = []
         col_names = get_hdu_col_names(hdu)
         push!(col_data, collect(1:length(read(hdu, col_names[1]))))
@@ -224,12 +229,15 @@ module fitsIO
         separator::Char = '|', cchar::Char = '#', hexists::Bool = true,
         file_out::AbstractString = "temp", dict = nothing)
         # separator::Char = '│' <- Se servisse l'altro carattere
+        prinln("a")
         if file_type == 't'
+            println("a")
             prepare_text(file_in, separator, file_out, cchar)
             new_frame = create_dataframe_internal(file_out, cchar = cchar, hexists = hexists, dict = dict)
             run(`rm -f temp`)
             return new_frame
         elseif file_type == 'f'
+            println(typeof(f[hdu_number]))
             f = FITS(file_in)
             return_ = create_dataframe_internal(f[hdu_number])
             close(f)
@@ -304,40 +312,6 @@ module fitsIO
     Base.collect(t::Union{Type, DataType, Union{}}) = _collect(t, [])
     _collect(t::Type, list) = t<:Union{} ? push!(list, t) : _collect(t.b, push!(list, t.a))
     _collect(t::Union{DataType,Core.TypeofBottom}, list) = push!(list, t)
-
-    # ------------------------------ ** ------------------------------ #
-
-    """
-        remove_missing!(df::DataFrame)
-
-    Rimuove i `missing` sostituendoli con una entry apposita. Per i float passa un `NaN`, per
-    una stringa passa ` `, mentre per gli int passa `0`.
-    """
-    function remove_missing!(df::DataFrame)
-
-        function parse_missing(x::Missing, type)
-            if type == String
-                return " "
-            elseif type == Float64
-                return NaN
-            elseif type == Int64
-                return 0
-            end
-        end
-        parse_missing(x::Number, type) = x
-        parse_missing(x::String, type) = x
-
-        col_names = names(df)
-        for name in col_names
-            col_type = eltype(df[!, name])
-            if col_type == Missing
-                select!(df, Not(name))
-            elseif isa(col_type, Union)
-                non_missing = collect(col_type)[2]
-                df[!, name] = parse_missing.(df[!, name], non_missing)
-            end
-        end
-    end
 
     # ------------------------------ ** ------------------------------ #
 
@@ -671,7 +645,7 @@ module fitsIO
     # ------------------------------ ** ------------------------------ #
 
     """
-        function adaptive_class(df::DataFrame; mn = 50, mw = 0.2)
+        adaptive_bin(df::DataFrame; mn = 50, mw = 0.2)
 
     Dato un dataframe con (:myid, :z), anche con z non ordinati ritorna un dataframe (:myid, :class).
     mn è il minimo numero di oggetti necessari per bin, mentre mw è la minima ampiezza del bin.
@@ -693,6 +667,11 @@ module fitsIO
 
     # ------------------------------ ** ------------------------------ #
 
+    """
+        login_qub()
+    
+    Fornisce il login al DB.
+    """
     function login_qub()
         credIO = open("/home/francio-pc/.exe/julia_modules/cred.auth", "r")
         cred = split(read(credIO, String), ":")
@@ -704,7 +683,110 @@ module fitsIO
 
     # ------------------------------ ** ------------------------------ #
 
+    function parse_entry(x::Nothing, type)
+        if type == String
+            return "Nothing"
+        elseif type <: Number
+            return convert(type, -999)
+        else 
+            return x
+        end
+    end
 
+    function parse_entry(x::Missing, type)
+        if type == String
+            return " "
+        elseif type <: AbstractFloat
+            return convert(type, NaN)
+        elseif type <: Integer
+            return convert(type, 0)
+        end
+    end
+
+    function parse_entry(x::Number, type)
+        x
+    end
+
+    function parse_entry(x::String, type)
+        x
+    end
 
     # ------------------------------ ** ------------------------------ #
+
+    """
+        remove_missing!(df::DataFrame)
+
+    Rimuove i `missing` ed i `nothing` sostituendoli con una entry apposita. 
+    I `nothing` diventano -999 (vario tipo, stringe incluse).
+    I `missing` diventano il tipo neutro corrispondente (0, " ", ...).
+    Le colonne di soli missing sono rimosse.
+    """
+    function remove_missing!(df::DataFrame)
+        col_names = names(df)
+        for name in col_names
+            col_type = eltype(df[!, name])
+            if col_type == Missing
+                select!(df, Not(name))
+            elseif col_type == Nothing
+                df[!, name] = ["-999" for i in 1:length(df[!, name])]
+            elseif isa(col_type, Union)
+                non_missing = collect(col_type)[2]
+                df[!, name] = parse_entry.(df[!, name], non_missing)
+            end
+        end
+    end
+
+    # ------------------------------ ** ------------------------------ #
+
+    """
+        change_missing!(df::DataFrame)
+
+    Rimuove i `missing` ed i `nothing` sostituendoli con una entry apposita. 
+    I `nothing` diventano -999 (vario tipo, stringe incluse).
+    I `missing` diventano il tipo neutro corrispondente (0, " ", ...).
+    Le colonne di soli `missing` o `nothing` sono trasformate in " " oppure "-999".
+    """
+    function change_missing!(df::DataFrame)
+        col_names = names(df)
+        for name in col_names
+            col_type = eltype(df[!, name])
+            if col_type == Missing
+                df[!, name] = [" " for i in 1:length(df[!, name])]
+            elseif col_type == Nothing
+                df[!, name] = ["-999" for i in 1:length(df[!, name])]
+            elseif isa(col_type, Union)
+                non_missing = collect(col_type)[2]
+                df[!, name] = parse_entry.(df[!, name], non_missing)
+            end
+        end
+    end
+
+    # ------------------------------ ** ------------------------------ #
+
+    isnan(x::String) = false
+
+    # ------------------------------ ** ------------------------------ #
+
+    """
+        conversion_dict()
+    
+    Ritorna il dizionario di conversione per il vecchio e nuovo MainSample.
+    Le chiavi sono i nomi per il nuovo MainSample, i valori i nomi del vecchio.
+    Le colonne non in comune sono considerate a parte.
+    """
+    function conversion_dict()
+        Dict([(:RAd, :raj2000), (:DECd, :dej2000), 
+            (:objtype, :otype), (:z, :z), (:extended, :ext_iz), 
+            (:mag_u, :u_psf), (:mag_u_err, :e_u_psf), (:mag_v, :v_psf), (:mag_v_err, :e_v_psf), 
+            (:mag_g, :g_psf), (:mag_g_err, :e_g_psf), (:mag_r, :r_psf), (:mag_r_err, :e_r_psf),
+            (:mag_i, :i_psf), (:mag_i_err, :e_i_psf), (:mag_z, :z_psf), (:mag_z_err, :e_z_psf),
+            (:gaia_BP, :phot_bp_mean_mag), (:gaia_BP_err, :phot_bp_mean_mag_error),
+            (:gaia_G,  :phot_g_mean_mag),  (:gaia_G_err, :phot_g_mean_mag_error), 
+            (:gaia_RP, :phot_rp_mean_mag), (:gaia_RP_err, :phot_rp_mean_mag_error),
+            (:mag_J, :j_m), (:mag_J_err, :j_cmsig), (:mag_H, :h_m), (:mag_H_err, :h_cmsig), 
+            (:mag_K, :k_m), (:mag_K_err, :k_cmsig), 
+            (:w1, :w1mpro), (:w1_err, :w1sigmpro), (:w2, :w2mpro), (:w2_err, :w2sigmpro),
+            (:w3, :w3mpro), (:w3_err, :w3sigmpro), (:w4, :w4mpro), (:w4_err, :w4sigmpro)])
+    end
+
 end
