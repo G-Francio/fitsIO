@@ -1,13 +1,33 @@
 # This file is machine-generated - editing it directly is not advised
 
+[[Artifacts]]
+deps = ["Pkg"]
+git-tree-sha1 = "c30985d8821e0cd73870b17b0ed0ce6dc44cb744"
+uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
+version = "1.3.0"
+
 [[AstroLib]]
 deps = ["Dates", "DelimitedFiles", "LinearAlgebra", "Printf", "StaticArrays", "Test"]
 git-tree-sha1 = "2f5675eda6e16a5efeb60e1b387fbd7800706cd2"
 uuid = "c7932e45-9af1-51e7-9da9-f004cd3a462b"
 version = "0.4.0"
 
+[[AstroRecipes]]
+deps = ["AstroLib", "DBInterface", "DataFrames", "FITSIO", "Healpix", "MySQL", "ODBC", "Printf", "ProgressMeter", "SkyCoords", "SortMerge", "StructC14N", "WCS"]
+git-tree-sha1 = "7ecb1136d97aae81ac0d8e8d52399f97212e164b"
+repo-rev = "master"
+repo-url = "https://github.com/gcalderone/AstroRecipes.jl"
+uuid = "e2d25571-835e-4748-919c-7dd32f5092b3"
+version = "0.1.0"
+
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
+
+[[BinaryProvider]]
+deps = ["Libdl", "Logging", "SHA"]
+git-tree-sha1 = "ecdec412a9abc8db54c0efc5548c64dfce072058"
+uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
+version = "0.5.10"
 
 [[CFITSIO]]
 deps = ["CFITSIO_jll"]
@@ -61,6 +81,11 @@ git-tree-sha1 = "3f71217b538d7aaee0b69ab47d9b7724ca8afa0d"
 uuid = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
 version = "4.0.4"
 
+[[DBInterface]]
+git-tree-sha1 = "7f678ccd98aef9d8462f79a6ba67bf263a67d27a"
+uuid = "a10d1c49-ce27-4219-8d33-6db1a4562965"
+version = "2.2.0"
+
 [[DataAPI]]
 git-tree-sha1 = "176e23402d80e7743fc26c19c681bfb11246af32"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
@@ -86,6 +111,18 @@ version = "1.0.0"
 [[Dates]]
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
+
+[[DecFP]]
+deps = ["DecFP_jll", "Printf", "Random", "SpecialFunctions"]
+git-tree-sha1 = "d8d6592bb3402d759862292c8af5617381f3ded9"
+uuid = "55939f99-70c6-5e9b-8bb0-5071ed7d61fd"
+version = "1.0.0"
+
+[[DecFP_jll]]
+deps = ["Libdl", "Pkg"]
+git-tree-sha1 = "ebc359a7d11bb63e3a3b87c36d07a88947640eb9"
+uuid = "47200ebd-12ce-5be5-abb7-8e082af23329"
+version = "2.0.2+0"
 
 [[DelimitedFiles]]
 deps = ["Mmap"]
@@ -164,6 +201,12 @@ git-tree-sha1 = "50ce06a8296acba9a1bdb75978fd80520d45b3fa"
 uuid = "dc211083-a33a-5b79-959f-2ff34033469d"
 version = "1.0.0"
 
+[[Healpix]]
+deps = ["FITSIO", "Printf", "RecipesBase", "Test"]
+git-tree-sha1 = "f753b15832fc0876cd80fdec7978700ba832d05d"
+uuid = "9f4e344d-96bc-545a-84a3-ae6b9e1b672b"
+version = "2.3.0"
+
 [[InteractiveUtils]]
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
@@ -184,6 +227,11 @@ version = "1.0.0"
 git-tree-sha1 = "a3f24677c21f5bbe9d2a714f95dcd58337fb2856"
 uuid = "82899510-4779-5014-852e-03e436cf321d"
 version = "1.0.0"
+
+[[JLLWrappers]]
+git-tree-sha1 = "7cec881362e5b4e367ff0279dd99a06526d51a55"
+uuid = "692b3bcd-3c85-4b1f-b108-f13ce0eb3210"
+version = "1.1.2"
 
 [[JSON]]
 deps = ["Dates", "Mmap", "Parsers", "Unicode"]
@@ -211,10 +259,10 @@ version = "1.9.0+3"
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 
 [[Libiconv_jll]]
-deps = ["Libdl", "Pkg"]
-git-tree-sha1 = "7c36dfe7971e55da03d8f54b67d4b3fb8ee01d63"
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "8e924324b2e9275a51407a4e06deb3455b1e359f"
 uuid = "94ce4f54-9a6c-5748-9c1c-f9c7231a4531"
-version = "1.16.0+6"
+version = "1.16.0+7"
 
 [[LinearAlgebra]]
 deps = ["Libdl"]
@@ -222,6 +270,12 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
+
+[[MariaDB_Connector_C_jll]]
+deps = ["LibCURL_jll", "Libdl", "Libiconv_jll", "OpenSSL_jll", "Pkg", "Zlib_jll"]
+git-tree-sha1 = "94aececf2b45ded08e67648da2c8d8eb392ca050"
+uuid = "aabc7e14-95f1-5e66-9f32-aea603782360"
+version = "3.1.6+0"
 
 [[Markdown]]
 deps = ["Base64"]
@@ -248,21 +302,39 @@ git-tree-sha1 = "916b850daad0d46b8c71f65f719c49957e9513ed"
 uuid = "78c3b35d-d492-501b-9361-3d52fe80e533"
 version = "0.7.1"
 
+[[MySQL]]
+deps = ["BinaryProvider", "DBInterface", "Dates", "DecFP", "Libdl", "MariaDB_Connector_C_jll", "Parsers", "Tables"]
+git-tree-sha1 = "c8231e628febae37bf280ec5606fa2c8d05b4917"
+uuid = "39abe10b-433b-5dbd-92d4-e302a9df00cd"
+version = "1.1.2"
+
 [[Nullables]]
 git-tree-sha1 = "8f87854cc8f3685a60689d8edecaa29d2251979b"
 uuid = "4d1e1d77-625e-5b40-9113-a560ec7a8ecd"
 version = "1.0.0"
+
+[[ODBC]]
+deps = ["DBInterface", "Dates", "DecFP", "Libdl", "Printf", "Random", "Tables", "UUIDs", "Unicode", "iODBC_jll", "unixODBC_jll"]
+git-tree-sha1 = "7e3ce82387793ee6e787f9dbf78728602f97c7ad"
+uuid = "be6f12e9-ca4f-5eb2-a339-a4f995cc0291"
+version = "1.0.4"
 
 [[OffsetArrays]]
 git-tree-sha1 = "3fdfca8a532507d65f39ff0ad34fe81097a55337"
 uuid = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
 version = "1.3.0"
 
+[[OpenSSL_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "71bbbc616a1d710879f5a1021bcba65ffba6ce58"
+uuid = "458c3c95-2e84-50aa-8efc-19380b2a3a95"
+version = "1.1.1+6"
+
 [[OpenSpecFun_jll]]
-deps = ["CompilerSupportLibraries_jll", "Libdl", "Pkg"]
-git-tree-sha1 = "d51c416559217d974a1113522d5919235ae67a87"
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "9db77584158d0ab52307f8c04f8e7c08ca76b5b3"
 uuid = "efe28fd5-8261-553b-a9e1-b2916fc3738e"
-version = "0.5.3+3"
+version = "0.5.3+4"
 
 [[OrderedCollections]]
 git-tree-sha1 = "16c08bf5dba06609fe45e30860092d6fa41fde7b"
@@ -306,6 +378,12 @@ version = "0.9.1"
 [[Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[[ProgressMeter]]
+deps = ["Distributed", "Printf"]
+git-tree-sha1 = "4cff8da83f89e06eeae5b81307a08bb33a96a602"
+uuid = "92933f4c-e287-5a05-a399-4b506db050ca"
+version = "1.4.0"
 
 [[QuadGK]]
 deps = ["DataStructures", "LinearAlgebra"]
@@ -360,8 +438,20 @@ uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
 uuid = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
 
+[[SkyCoords]]
+deps = ["DelimitedFiles", "Printf", "StaticArrays", "Statistics", "Test"]
+git-tree-sha1 = "30d1fc4bf2dde3b90edf76c8e0f275e24290918a"
+uuid = "fc659fc5-75a3-5475-a2ea-3da92c065361"
+version = "0.3.0"
+
 [[Sockets]]
 uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
+
+[[SortMerge]]
+deps = ["Printf", "SparseArrays", "StatsBase"]
+git-tree-sha1 = "2a5de9945228ad3706344dae03106a1405f585f5"
+uuid = "041a2d23-8c6e-5597-be73-bf96b5e0dfd4"
+version = "1.2.0"
 
 [[SortingAlgorithms]]
 deps = ["DataStructures", "Random", "Test"]
@@ -453,6 +543,12 @@ version = "1.0.2"
 [[Unicode]]
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
+[[WCS]]
+deps = ["BinaryProvider", "Libdl", "Test"]
+git-tree-sha1 = "6563aaf80239619ecf5ddd4be734297ba3675796"
+uuid = "15f3aee2-9e10-537f-b834-a6fb8bdb944d"
+version = "0.5.0"
+
 [[WeakRefStrings]]
 deps = ["DataAPI", "Random", "Test"]
 git-tree-sha1 = "28807f85197eaad3cbd2330386fac1dcb9e7e11d"
@@ -460,19 +556,31 @@ uuid = "ea10d353-3f73-51f8-a26c-33c1cb351aa5"
 version = "0.6.2"
 
 [[XML2_jll]]
-deps = ["Libdl", "Libiconv_jll", "Pkg", "Zlib_jll"]
-git-tree-sha1 = "ecff6bff03b35d482ad5eb51276d6fc4c823cd39"
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Libiconv_jll", "Pkg", "Zlib_jll"]
+git-tree-sha1 = "be0db24f70aae7e2b89f2f3092e93b8606d659a6"
 uuid = "02c8fc9c-b97f-50b9-bbe4-9be30ff0a78a"
-version = "2.9.10+2"
+version = "2.9.10+3"
 
 [[Zlib_jll]]
-deps = ["Libdl", "Pkg"]
-git-tree-sha1 = "fdd89e5ab270ea0f2a0174bd9093e557d06d4bfa"
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "320228915c8debb12cb434c59057290f0834dbf6"
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
-version = "1.2.11+16"
+version = "1.2.11+18"
+
+[[iODBC_jll]]
+deps = ["Libdl", "Pkg"]
+git-tree-sha1 = "275437992b9d383ec34e0712ff70f0cc2bff2669"
+uuid = "80337aba-e645-5151-a517-44b13a626b79"
+version = "3.52.13+1"
 
 [[nghttp2_jll]]
 deps = ["Libdl", "Pkg"]
 git-tree-sha1 = "8e2c44ab4d49ad9518f359ed8b62f83ba8beede4"
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
 version = "1.40.0+2"
+
+[[unixODBC_jll]]
+deps = ["Libdl", "Libiconv_jll", "Pkg"]
+git-tree-sha1 = "7240ac85d0e65d0a6a45d19404472f8b4665e551"
+uuid = "1841a5aa-d9e2-579c-8226-32ed2af93ab1"
+version = "2.3.7+0"
