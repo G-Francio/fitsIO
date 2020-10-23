@@ -670,7 +670,7 @@ module fitsIO
     Fornisce il login al DB.
     """
     function login_qub()
-        credIO = open("/home/francio-pc/.exe/julia_modules/cred.auth", "r")
+        credIO = open("/home/francio/.julia/cred.auth", "r")
         cred = split(read(credIO, String), ":")
         close(credIO)
         user = string(cred[1])
