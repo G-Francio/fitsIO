@@ -907,8 +907,7 @@ module fitsIO
     # ------------------------------ ** ------------------------------ #
 
     """
-        generate_dataset!(df::DataFrame, g_data::DataFrame, tiles_ais::DataFrame, tiles_mis::DataFrame,
-    l_galex::Array{Float64, 1}, l_mag::Array{Float64, 1}, l_err::Array{Float64, 1})
+        generate_dataset!(df::DataFrame, g_data::DataFrame, tiles_ais::DataFrame, tiles_mis::DataFrame, l_galex::Array{Float64, 1}, l_mag::Array{Float64, 1}, l_err::Array{Float64, 1})
 
     Dato un DataFrame con coordinate, magnitudini ed errori aggiunge Galex e produce il file testuale per la PRF.
     `df` è contiene le informazioni generali, `tiles_xxx` le informazioni da Galex (non processate), `g_data` le
@@ -943,8 +942,6 @@ module fitsIO
         g_footprint.mis_nuv[match_mis_nuv] .= 1
         g_footprint.mis_fuv[match_mis_fuv] .= 1
 
-        return g_footprint
-
         df = hcat(df, g_footprint)
         df_galex = leftjoin(df, g_data, on = :iid)
         remove_missing!(df_galex)
@@ -968,6 +965,14 @@ module fitsIO
         sub_in_df!(err, isnan, l_err)
 
         return mag, err
+    end
+
+    """
+        add_iid!(df::DataFrame)
+    Genera la colonna :iid in un DataFrame.
+    """
+    function add_iid!(df::DataFrame)
+        df[!, :iid] = collect(1:length(df[!, 1]))
     end
 
 end
