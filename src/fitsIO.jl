@@ -1,6 +1,6 @@
 module fitsIO
     using FITSIO, TextParse, AstroLib, DataFrames, Dates, WeakRefStrings
-    using PrettyTables, Dierckx, Gnuplot, QuadGK, AstroRecipes
+    using PrettyTables, Dierckx, Gnuplot, QuadGK, AstroRecipes, StatsBase
 
     import Base.write, Base.isnan
 
@@ -9,6 +9,8 @@ module fitsIO
         conversion_dict,
         create_dataframe,
         find_fits,
+        generate_dataset!,
+        generate_QSG,
         get_current_date,
         get_hdu_col_names,
         get_hdu_keys,
@@ -20,7 +22,9 @@ module fitsIO
         login_qub,
         mag_lim,
         new_spectra_df!,
+        parse_galex_results!,
         prepare_stack,
+        prepMatchFiles!,
         rebin,
         remove_missing!,
         stack_spectra!,
@@ -756,8 +760,6 @@ module fitsIO
     # ------------------------------ ** ------------------------------ #
 
     isnan(x::String) = false
-
-    using DataFrames, StatsBase, AstroRecipes
 
     # ------------------------------ ** ------------------------------ #
 
