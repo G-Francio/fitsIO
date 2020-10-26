@@ -1018,6 +1018,7 @@ module fitsIO
             flux[!,:err_K] = twomass_f0[3] .* 10 .^(-(skym.k_m.-skym.k_cmsig) ./ 2.5) .- flux[:,:K]
 
             # http://skymapper.anu.edu.au/data-release/dr1/#Filters
+            AB_f0 = 3631.
             flux[!,:i]     = AB_f0[1] .* 10 .^( -skym.i_psf ./ 2.5)
             flux[!,:z]     = AB_f0[1] .* 10 .^( -skym.z_psf ./ 2.5)
             flux[!,:err_u] = AB_f0[1] .* 10 .^(-(skym.u_psf.-skym.e_u_psf) ./ 2.5) .- flux[:,:u]
