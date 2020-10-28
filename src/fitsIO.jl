@@ -902,7 +902,13 @@ module fitsIO
     Pulisce un dataframe dalle colonne non utili per la PRF.
     """
     function clean_dataset!(df::DataFrame)
-        select!(df, Not([:RAs, :DECs, :obs, :otype, :z, :ebmv_sfd, :ext_iz, :matched]))
+        to_remove = Array{String, 1}()
+        for name in names(df)
+            if name in ("RAs", "DECs", "obs", "otype", "z", "ebmv_sfd", "ext_iz", "matched")
+                push!(to_remove, name)
+            end
+        end
+        select!(df, Not(to_remove))
         return df
     end
 
@@ -1019,6 +1025,10 @@ module fitsIO
 
             # http://skymapper.anu.edu.au/data-release/dr1/#Filters
             AB_f0 = 3631.
+            flux[!,:u]     = AB_f0[1] .* 10 .^( -skym.u_psf ./ 2.5)
+            flux[!,:v]     = AB_f0[1] .* 10 .^( -skym.v_psf ./ 2.5)
+            flux[!,:g]     = AB_f0[1] .* 10 .^( -skym.g_psf ./ 2.5)
+            flux[!,:r]     = AB_f0[1] .* 10 .^( -skym.r_psf ./ 2.5)
             flux[!,:i]     = AB_f0[1] .* 10 .^( -skym.i_psf ./ 2.5)
             flux[!,:z]     = AB_f0[1] .* 10 .^( -skym.z_psf ./ 2.5)
             flux[!,:err_u] = AB_f0[1] .* 10 .^(-(skym.u_psf.-skym.e_u_psf) ./ 2.5) .- flux[:,:u]
