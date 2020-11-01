@@ -1045,10 +1045,10 @@ module fitsIO
         flux = addflux(DataFrame(skym1))
         file = "$(path)/" * string(skym1[:object_id]) * ".png"
         #isfile(file)  &&  return nothing
-        w = [   500,   3800,   5200,   6200,   7600,   9000, 12_500, 16_500, 21_500, 34_350,  46_000,  115_600, 220_800]
+        w = [  3500,   3800,   5200,   6200,   7600,   9000, 12_500, 16_500, 21_500,  34_350,  46_000, 115_600, 220_800]
         m = [    :u,     :v,     :g,     :r,     :i,     :z,     :J,     :H,     :K,     :w1,     :w2,     :w3,     :w4]
         e = [:err_u, :err_v, :err_g, :err_r, :err_i, :err_z, :err_J, :err_H, :err_K, :err_w1, :err_w2, :err_w3, :err_w4]
-        l = [   "fUV",    "nUV",    "u",    "v",    "g",    "r",    "i",    "z",    "J",    "H",    "K",    "W1",    "W2",    "W3",    "W4"]
+        l = [    "u",    "v",    "g",    "r",    "i",    "z",    "J",    "H",    "K",    "W1",    "W2",    "W3",    "W4"]
         f = 3e18 ./ w
         mm = collect(flux[m]);  mm .*= 1e-10 .* f;
         ee = collect(flux[e]);  ee .*= 1e-10 .* f;
