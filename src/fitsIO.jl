@@ -1040,7 +1040,8 @@ module fitsIO
 
             # https://asd.gsfc.nasa.gov/archive/galex/FAQ/counts_background.html
             # https://galex.stsci.edu/GR6/?page=faq
-            GALEX_f0 = [33.65e-6, 108e-6]
+            # A tutti gli effetti calcolato a mano e facendo il controllo su una sorgente a caso.
+            GALEX_f0 = [3800., 3625.]
             flux[!,:nuv]     = GALEX_f0[1] .* 10 .^( -skym.nuv_mag ./ 2.5)
             flux[!,:fuv]     = GALEX_f0[2] .* 10 .^( -skym.fuv_mag ./ 2.5)
             flux[!,:err_nuv] = GALEX_f0[1] .* 10 .^(-(skym.nuv_mag.-skym.nuv_magerr) ./ 2.5) .- flux[:, :nuv]
