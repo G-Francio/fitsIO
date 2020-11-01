@@ -1037,16 +1037,25 @@ module fitsIO
             flux[!,:err_r] = AB_f0[1] .* 10 .^(-(skym.r_psf.-skym.e_r_psf) ./ 2.5) .- flux[:,:r]
             flux[!,:err_i] = AB_f0[1] .* 10 .^(-(skym.i_psf.-skym.e_i_psf) ./ 2.5) .- flux[:,:i]
             flux[!,:err_z] = AB_f0[1] .* 10 .^(-(skym.z_psf.-skym.e_z_psf) ./ 2.5) .- flux[:,:z]
+
+            # https://asd.gsfc.nasa.gov/archive/galex/FAQ/counts_background.html
+            # https://galex.stsci.edu/GR6/?page=faq
+            GALEX_f0 = [33.65e-6, 108e-6]
+            flux[!,:nuv]     = GALEX_f0[1] .* 10 .^( -skym.nuv_mag ./ 2.5)
+            flux[!,:fuv]     = GALEX_f0[2] .* 10 .^( -skym.fuv_mag ./ 2.5)
+            flux[!,:err_nuv] = GALEX_f0[1] .* 10 .^(-(skym.nuv_mag.-skym.nuv_magerr) ./ 2.5) .- flux[:, :nuv]
+            flux[!,:err_fuv] = GALEX_f0[2] .* 10 .^(-(skym.nuv_mag.-skym.fuv_magerr) ./ 2.5) .- flux[:, :fuv]
+            
             return flux[1,:]
         end
 
         flux = addflux(DataFrame(skym1))
         file = "$(path)/" * string(skym1[:object_id]) * ".png"
         #isfile(file)  &&  return nothing
-        w = [  3500,   3800,   5200,   6200,   7600,   9000, 12_500, 16_500, 21_500,  34_350,  46_000, 115_600, 220_800]
-        m = [    :u,     :v,     :g,     :r,     :i,     :z,     :J,     :H,     :K,     :w1,     :w2,     :w3,     :w4]
-        e = [:err_u, :err_v, :err_g, :err_r, :err_i, :err_z, :err_J, :err_H, :err_K, :err_w1, :err_w2, :err_w3, :err_w4]
-        l = [        "u",         "v",         "g",         "r",         "i",         "z",         "J",         "H",         "K",         "W1",         "W2",         "W3",         "W4"]
+        w = [    1500,     2300,   3500,   3800,   5200,   6200,   7600,   9000, 12_500, 16_500, 21_500, 34_350,  46_000,  115_600, 220_800]
+        m = [    :fuv,     :nuv,     :u,     :v,     :g,     :r,     :i,     :z,     :J,     :H,     :K,     :w1,     :w2,     :w3,     :w4]
+        e = [:err_fuv, :err_nuv, :err_u, :err_v, :err_g, :err_r, :err_i, :err_z, :err_J, :err_H, :err_K, :err_w1, :err_w2, :err_w3, :err_w4]
+        l = [   "fUV",    "nUV",    "u",    "v",    "g",    "r",    "i",    "z",    "J",    "H",    "K",    "W1",    "W2",    "W3",    "W4"]
         f = 3e18 ./ w
         mm = collect(flux[m]);  mm .*= 1e-10 .* f;
         ee = collect(flux[e]);  ee .*= 1e-10 .* f;
