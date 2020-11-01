@@ -29,6 +29,7 @@ module fitsIO
         rebin,
         remove_missing!,
         sedplot,
+        sedplotGALEX,
         stack_spectra!,
         sub_in_df!,
         write
