@@ -677,7 +677,7 @@ module fitsIO
         close(credIO)
         user = string(cred[1])
         pass = string(cred[2])
-        AstroRecipes.DBConnect("127.0.0.1", user = user, passwd = pass, dbname = "Qubrics")
+        MyAstroUtils.DBConnect("127.0.0.1", user = user, passwd = pass, dbname = "Qubrics")
     end
 
     # ------------------------------ ** ------------------------------ #
