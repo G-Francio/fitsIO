@@ -12,14 +12,6 @@ git-tree-sha1 = "2f5675eda6e16a5efeb60e1b387fbd7800706cd2"
 uuid = "c7932e45-9af1-51e7-9da9-f004cd3a462b"
 version = "0.4.0"
 
-[[AstroRecipes]]
-deps = ["AstroLib", "DBInterface", "DataFrames", "FITSIO", "Healpix", "MySQL", "ODBC", "Printf", "ProgressMeter", "SkyCoords", "SortMerge", "StructC14N", "WCS"]
-git-tree-sha1 = "7ecb1136d97aae81ac0d8e8d52399f97212e164b"
-repo-rev = "master"
-repo-url = "https://github.com/gcalderone/AstroRecipes.jl"
-uuid = "e2d25571-835e-4748-919c-7dd32f5092b3"
-version = "0.1.0"
-
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
@@ -289,10 +281,10 @@ deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[MbedTLS_jll]]
-deps = ["Libdl", "Pkg"]
-git-tree-sha1 = "c0b1286883cac4e2b617539de41111e0776d02e8"
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "0eef589dd1c26a3ac9d753fe1a8bcad63f956fa6"
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
-version = "2.16.8+0"
+version = "2.16.8+1"
 
 [[Missings]]
 deps = ["DataAPI"]
@@ -309,6 +301,14 @@ git-tree-sha1 = "916b850daad0d46b8c71f65f719c49957e9513ed"
 uuid = "78c3b35d-d492-501b-9361-3d52fe80e533"
 version = "0.7.1"
 
+[[MyAstroUtils]]
+deps = ["AstroLib", "DBInterface", "DataFrames", "FITSIO", "Healpix", "MySQL", "Printf", "ProgressMeter", "Reexport", "SkyCoords", "SortMerge", "StructC14N", "WCS"]
+git-tree-sha1 = "28442e7e13550aee5b83cd1c3e5d8cf4686b0b3b"
+repo-rev = "master"
+repo-url = "https://github.com/gcalderone/MyAstroUtils.jl"
+uuid = "e2d25571-835e-4748-919c-7dd32f5092b3"
+version = "0.1.0"
+
 [[MySQL]]
 deps = ["BinaryProvider", "DBInterface", "Dates", "DecFP", "Libdl", "MariaDB_Connector_C_jll", "Parsers", "Tables"]
 git-tree-sha1 = "c8231e628febae37bf280ec5606fa2c8d05b4917"
@@ -319,12 +319,6 @@ version = "1.1.2"
 git-tree-sha1 = "8f87854cc8f3685a60689d8edecaa29d2251979b"
 uuid = "4d1e1d77-625e-5b40-9113-a560ec7a8ecd"
 version = "1.0.0"
-
-[[ODBC]]
-deps = ["DBInterface", "Dates", "DecFP", "Libdl", "Printf", "Random", "Tables", "UUIDs", "Unicode", "iODBC_jll", "unixODBC_jll"]
-git-tree-sha1 = "7e3ce82387793ee6e787f9dbf78728602f97c7ad"
-uuid = "be6f12e9-ca4f-5eb2-a339-a4f995cc0291"
-version = "1.0.4"
 
 [[OffsetArrays]]
 git-tree-sha1 = "a416e2f267e2c8729f25bcaf1ce19d2893faf393"
@@ -574,20 +568,8 @@ git-tree-sha1 = "320228915c8debb12cb434c59057290f0834dbf6"
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
 version = "1.2.11+18"
 
-[[iODBC_jll]]
-deps = ["Libdl", "Pkg"]
-git-tree-sha1 = "275437992b9d383ec34e0712ff70f0cc2bff2669"
-uuid = "80337aba-e645-5151-a517-44b13a626b79"
-version = "3.52.13+1"
-
 [[nghttp2_jll]]
 deps = ["Libdl", "Pkg"]
 git-tree-sha1 = "8e2c44ab4d49ad9518f359ed8b62f83ba8beede4"
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
 version = "1.40.0+2"
-
-[[unixODBC_jll]]
-deps = ["Libdl", "Libiconv_jll", "Pkg"]
-git-tree-sha1 = "7240ac85d0e65d0a6a45d19404472f8b4665e551"
-uuid = "1841a5aa-d9e2-579c-8226-32ed2af93ab1"
-version = "2.3.7+0"
