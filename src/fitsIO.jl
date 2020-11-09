@@ -1,6 +1,6 @@
 module fitsIO
     using FITSIO, TextParse, AstroLib, DataFrames, Dates, WeakRefStrings
-    using PrettyTables, Dierckx, Gnuplot, QuadGK, AstroRecipes, StatsBase
+    using PrettyTables, Dierckx, Gnuplot, QuadGK, MyAstroUtils, StatsBase
 
     import Base.write, Base.isnan
 
@@ -563,19 +563,19 @@ module fitsIO
         y_var = 0.01
 
         if y == 1
-        @gp "set style fill solid 0.4"
-        @gp :- "set key left box"
-        @gp :- h.bins h.counts "w boxes lc 'grey60' t 'Distribuzione per skymapper g'"
-        @gp :- max_mag spline_points[max_id] "pt 7 ps 0.7 lc 'red' lw 0.1 t 'Massimo della distribuzione'"
-        @gp :- var y_var "pt 7 ps 0.7 lc 'blue' lw 0.1 t 'Magnitudine limite'"
-        @gp :- point_list spline_points "w l lc 'red' dashtype 2 t 'Spline polinomiale'"
-        @gp :- gauss_x gauss_points "w l lc 'black' notitle"
-        @gp :- gauss_x gauss_points_reverse "w l lc 'blue' notitle"
-        save(term="pngcairo size 720, 420 fontscale 0.8", output = "output.png")
-    end
+            @gp "set style fill solid 0.4"
+            @gp :- "set key left box"
+            @gp :- h.bins h.counts "w boxes lc 'grey60' t 'Distribuzione per skymapper g'"
+            @gp :- max_mag spline_points[max_id] "pt 7 ps 0.7 lc 'red' lw 0.1 t 'Massimo della distribuzione'"
+            @gp :- var y_var "pt 7 ps 0.7 lc 'blue' lw 0.1 t 'Magnitudine limite'"
+            @gp :- point_list spline_points "w l lc 'red' dashtype 2 t 'Spline polinomiale'"
+            @gp :- gauss_x gauss_points "w l lc 'black' notitle"
+            @gp :- gauss_x gauss_points_reverse "w l lc 'blue' notitle"
+            save(term="pngcairo size 720, 420 fontscale 0.8", output = "output.png")
+        end
 
         return max_mag + offset, sigma, max_mag + mult*sigma + offset
-        end
+    end
 
     # ------------------------------ ** ------------------------------ #
 
