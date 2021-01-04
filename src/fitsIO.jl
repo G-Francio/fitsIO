@@ -477,13 +477,34 @@ module fitsIO
     ogni colonna il corrispondente elemento della lista quando viene
     soddisfatta la condizione indicata dalla funzione f.
     """
+    #function sub_in_df!(df::DataFrame, f, list)
+    #    for (i, name) in enumerate(names(df))
+    #        for (n, val) in enumerate(df[!, name])
+    #            if f(val)
+    #                df[!, name][n] = list[i]
+    #            end
+    #        end
+    #    end
+    #end
+
     function sub_in_df!(df::DataFrame, f, list)
-        for (i, name) in enumerate(names(df))
-            for (n, val) in enumerate(df[!, name])
-                if f(val)
-                    df[!, name][n] = list[i]
+        subList = copy(list)
+
+        function fixNaNReplaceList(r, l)
+            for (n, (er, el)) in enumerate(zip(r, l))
+                t = eltype(er)
+                if t <: Integer && isnan(el)
+                    l[n] = 0
                 end
             end
+            return l
+        end
+
+        for row in eachrow(df)
+            name  = string.(findall(f, row))
+            index = indexin(name, names(df))
+            subList = fixNaNReplaceList(row[index], list[index])
+            row[index] = subList
         end
     end
 
