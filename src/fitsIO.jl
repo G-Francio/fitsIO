@@ -693,9 +693,14 @@ module fitsIO
     Fornisce il login al DB.
     """
     function login_qub()
-        credIO = open("/home/francio/.julia/cred.auth", "r")
-        cred = split(read(credIO, String), ":")
-        close(credIO)
+        cred = Array{String, 1}()
+        
+        open("/home/francio/.cred.auth") do file
+            for ln in eachline(file)
+                push!(cred, ln)
+            end
+        end
+
         user = string(cred[1])
         pass = string(cred[2])
         MyAstroUtils.DBconnect("127.0.0.1", user = user, passwd = pass, dbname = "Qubrics")
