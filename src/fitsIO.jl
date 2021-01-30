@@ -906,7 +906,7 @@ module fitsIO
                 row.fuv_magerr = e_m_fuv_mis
             elseif isnan(row.fuv_mag) && row.mis_fuv == 0 && row.ais_fuv == 1
                 row.fuv_mag = m_fuv_ais
-                row.fuv_magerr = e_m_fuv_mis
+                row.fuv_magerr = e_m_fuv_ais
             end
 
             if iszero(row.nuv_exptime)
